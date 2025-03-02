@@ -6,7 +6,6 @@
 import boto3
 import logging
 
-
 from operator import itemgetter
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnableParallel
@@ -144,7 +143,7 @@ prompt = ChatPromptTemplate.from_messages(
 
 # Amazon Bedrock - KnowledgeBase Retriever
 retriever = AmazonKnowledgeBasesRetriever(
-    knowledge_base_id="EACIXSYKFN", # 👈 Set your Knowledge base ID
+    knowledge_base_id="XXXXXXXXXX", # 👈 Set your Knowledge base ID
     retrieval_config={"vectorSearchConfiguration": {"numberOfResults": 4}},
 )
 
@@ -155,7 +154,7 @@ model = ChatBedrockConverse(
     temperature=0.2,
     top_p=0.9,
     guardrails={
-        "guardrailIdentifier": "rvmgaef4v5qp",
+        "guardrailIdentifier": "xxxxxxxxxxxx",
         "guardrailVersion": "DRAFT",
         "trace": "enabled"
     },
@@ -175,13 +174,6 @@ chain = (
     .assign(response = prompt | model_with_tools | StrOutputParser())
     .pick(["response", "context", "tools"])
 )
-
-# response = model_with_tools.invoke("Get me a list of current instances in the AWS Northern Virginia region.")
-# if response.tool_calls:
-#     for tool_call in response.tool_calls:
-#         selected_tool = {"getweather": getWeather, "getaccountname": getAccountName, "getinstances": getInstances}[tool_call["name"].lower()]
-#         toolResponse = selected_tool.invoke(tool_call)
-#         print(toolResponse.content)
 
 # Streamlit Chat Message History
 history = StreamlitChatMessageHistory(key="chat_messages")
