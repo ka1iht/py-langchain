@@ -1,32 +1,41 @@
+# imports
+#aws
 import boto3
-import datetime
 
+# python
+import datetime
 from typing import Annotated
 from typing_extensions import TypedDict
 
-from langchain_aws.retrievers import AmazonKnowledgeBasesRetriever
-from langchain.chains import RetrievalQA
+# langchain
 from langchain_aws import ChatBedrockConverse
 from langchain.prompts import ChatPromptTemplate
 
+# langgraph
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 
+# IPython
 from IPython.display import Image, display
 
 class State(TypedDict):
     messages: Annotated[list, add_messages]
+
+def qa(state: State):
+    return {
+        "messages": [claude.invoke(state["messages"])]
+    }
+
+def graph_stream(user_input: str):
+    for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
+        for value in event.values():
+            print("Assistant:", value["messages"][-1]["content"])
 
 graph_builder = StateGraph(State)
 
 bedrock_client = boto3.client(
     service_name="bedrock-agent-runtime",
     region_name="us-east-1"
-)
-
-retriever = AmazonKnowledgeBasesRetriever(
-    knowledge_base_id="",
-    retrieval_config={"vectorSearchConfiguration": {"numberOfResults": 2}}
 )
 
 claude = ChatBedrockConverse(
@@ -53,17 +62,6 @@ prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-chain = RetrievalQA.from_chain_type(
-    llm = claude,
-    retriever = retriever,
-    return_source_documents = True
-)
-
-def qa(state: State):
-    return {
-        "messages": [chain.invoke(state["messages"])]
-    }
-
 graph_builder.add_node("qa", qa)
 
 graph_builder.add_edge(START, "qa")
@@ -75,3 +73,17 @@ try:
     display(Image(graph.get_graph().draw_mermaid_png()))
 except Exception as e:
     print(e)
+
+while True:
+    try:
+        user_input = input("User: ")
+        if user_input == "exit":
+            break
+        graph_stream(user_input)
+    
+    except:
+        user_input = input("User: What is your name?")
+        print("User: ", user_input)
+        graph_stream(user_input)
+        break
+
