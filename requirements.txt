@@ -10,3 +10,4 @@ langchain_community
 boto3
 streamlit
 requests
+tavily_python
