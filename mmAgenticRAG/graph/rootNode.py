@@ -1,4 +1,7 @@
 # imports
+# nodes
+import tavilyNode
+
 #aws
 import boto3
 
@@ -6,10 +9,12 @@ import boto3
 import datetime
 from typing import Annotated
 from typing_extensions import TypedDict
+import json
 
 # langchain
 from langchain_aws import ChatBedrockConverse
 from langchain.prompts import ChatPromptTemplate
+from langchain_core import ToolMessage
 
 # langgraph
 from langgraph.graph import StateGraph, START, END
@@ -23,7 +28,7 @@ class State(TypedDict):
 
 def qa(state: State):
     return {
-        "messages": [claude.invoke(state["messages"])]
+        "messages": [claude_with_tools.invoke(state["messages"])]
     }
 
 def graph_stream(user_input: str):
@@ -51,6 +56,12 @@ claude = ChatBedrockConverse(
         "trace": "enabled"
     }
 )
+
+tools = [tavilyNode.tavily_tool]
+
+claude_with_tools = claude.bind_tools(tools)    
+
+print(tools.invoke("What was the result of the last Arsenal match?"))
 
 date = datetime.datetime.today().strftime("%Y-%m-%d")
 
