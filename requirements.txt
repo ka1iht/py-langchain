@@ -1,6 +1,7 @@
 bs4
 tabulate
 IPython
+ipykernel
 pymupdf
 langchain
 langgraph
